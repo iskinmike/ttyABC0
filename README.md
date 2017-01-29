@@ -10,6 +10,7 @@ ttyABC0.c
 Makefile
 
 Тестирование на ядре:
+
 4.4.0-59-generic - входит в состав xubuntu-16.04.1-desktop-i386.iso
 
 Сборка модуля ядра:
