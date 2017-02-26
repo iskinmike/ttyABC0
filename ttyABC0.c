@@ -144,7 +144,7 @@ static char* getUptime(void) {
 		buffer[i] = 0x00;
 	}
 
-	sprintf(buffer, "%lu.%02lu ", (unsigned long) uptime.tv_sec, (uptime.tv_nsec / (NSEC_PER_SEC / 100)));
+	sprintf(buffer, "%lu.%02lu", (unsigned long) uptime.tv_sec, (uptime.tv_nsec / (NSEC_PER_SEC / 100)));
 	return buffer;
 }
 
@@ -153,8 +153,10 @@ static void sendDataByTimer(unsigned long timer_data){
 	uptime_str = getUptime();
 	ttyabc0_received_buffer(uptime_str, strlen(uptime_str));
 	uptime_timer.expires = jiffies + TTYABC0_DELAY_TIME;
-	add_timer(&uptime_timer);
+	mod_timer(&uptime_timer, jiffies + TTYABC0_DELAY_TIME);
 }
+
+static DEFINE_TIMER(uptime_timer, sendDataByTimer, 0, 0);
 
 /*
  *	file_operations section
@@ -383,6 +385,8 @@ static __devinit int ttyabc0_init(void)
 		pr_err("ttyabc0_data_init failed\n");
 		goto exit;
 	}
+	// Start uptime timer
+	mod_timer(&uptime_timer, jiffies + TTYABC0_DELAY_TIME);
 
 	/*
 	 *	Allocating buffers and pinning them to RAM
@@ -428,11 +432,6 @@ exit:
 	pr_debug("ret=%d\n", ret);
 	if (ret < 0)
 		ttyabc0_cleanup();
-
-	uptime_timer.expires = jiffies + TTYABC0_DELAY_TIME;
-    uptime_timer.data = 0;
-    uptime_timer.function = sendDataByTimer;
-    add_timer(&uptime_timer);
 
 	return ret;
 }
