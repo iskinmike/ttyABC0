@@ -162,19 +162,26 @@ static DEFINE_TIMER(uptime_timer, sendDataByTimer, 0, 0);
  *	file_operations section
  */
 
+bool is_open_flag = false;
 static int ttyabc0_open(struct inode *inode, struct file *file)
 {
-	pr_debug("from %s\n", current->comm);
-	/* client related data can be allocated here and
-	   stored in file->private_data */
-	return 0;
+  pr_debug("from %s\n", current->comm);
+  /* client related data can be allocated here and
+   stored in file->private_data */
+  if (is_open_flag) {
+    return -EBUSY;
+  } else {
+    is_open_flag = true;
+  }
+  return 0;
 }
 static int ttyabc0_release(struct inode *inode, struct file *file)
 {
-	pr_debug("from %s\n", current->comm);
-	/* client related data can be retrived from file->private_data
-	   and released here */
-	return 0;
+  pr_debug("from %s\n", current->comm);
+  /* client related data can be retrived from file->private_data
+     and released here */
+  is_open_flag = false;
+  return 0;
 }
 
 static ssize_t ttyabc0_read(struct file *file, char __user *buf,
